@@ -1,5 +1,7 @@
 package ru.yandex.practicum;
 
+import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 /*
@@ -9,6 +11,33 @@ import java.util.List;
  */
 public class WordleDictionary {
 
-    private List<String> words;
+    private final List<String> words;
+    private final PrintWriter logFile;
 
+    public WordleDictionary(PrintWriter logFile) {
+        this.logFile = logFile;
+        this.words = new ArrayList<>();
+    }
+
+    public boolean contains(String word) {
+        return words.contains(word);
+    }
+
+    public void add(String word) {
+        if (word.length() == 5) {
+            words.add(word.replaceAll("ё", "е").toLowerCase());
+        }
+    }
+
+    public int size() {
+        return words.size();
+    }
+
+    public String get(int wordIndex) {
+        return words.get(wordIndex);
+    }
+
+    public List<String> getWords() {
+        return words;
+    }
 }
