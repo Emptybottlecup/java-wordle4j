@@ -39,8 +39,6 @@ public class WordleGame {
 
     private boolean giveAdvice;
 
-    private final Scanner scanner;
-
     private String symbols;
 
     private final HashSet<String> alreadyUsedWords;
@@ -56,7 +54,6 @@ public class WordleGame {
     public WordleGame(WordleDictionary dictionary, PrintWriter logFile) {
         this.logFile = logFile;
         this.dictionary = dictionary;
-        this.scanner = new Scanner(System.in);
         this.gameIsContinue = true;
         this.userWin = false;
         this.rand = new Random();
@@ -67,34 +64,29 @@ public class WordleGame {
         createAnswer();
     }
 
-    public void gameStep() throws WordLengthNotEqual5, IsOnlyBlanks, DictionaryNotContainsThisWord, CorrectAnswerAlreadyDone {
+    public void gameStep(String userAnswer) throws WordLengthNotEqual5, IsOnlyBlanks, DictionaryNotContainsThisWord, CorrectAnswerAlreadyDone {
         giveAdvice = false;
 
-        while (true) {
-            String userAnswer = scanner.nextLine();
-            if (!userAnswer.isEmpty()) {
-                if (userAnswer.length() != 5) {
-                    throw new WordLengthNotEqual5("Слово состоит меньше чем из 5 символов");
-                } else if (userAnswer.isBlank()) {
-                    throw new IsOnlyBlanks("Введенное слово состоит только из пробелов.");
-                }
-                userAnswer = userAnswer.toLowerCase().replaceAll("ё", "е");
-                if (!dictionary.contains(userAnswer)) {
-                    throw new DictionaryNotContainsThisWord("Слово введенное пользователем не содержится в словаре");
-                }
-
-                if (userAnswer.equals(answer)) {
-                    userWin = true;
-                }
-                alreadyUsedWords.add(userAnswer);
-                createSymbols(userAnswer);
-                --steps;
-            } else {
-                giveAdvice = true;
-                findAdvice(userAnswer);
-                createSymbols(advice);
+        if (!userAnswer.isEmpty()) {
+            if (userAnswer.length() != 5) {
+                throw new WordLengthNotEqual5("Слово состоит меньше чем из 5 символов");
+            } else if (userAnswer.isBlank()) {
+                throw new IsOnlyBlanks("Введенное слово состоит только из пробелов.");
             }
-            break;
+            userAnswer = userAnswer.toLowerCase().replaceAll("ё", "е");
+            if (!dictionary.contains(userAnswer)) {
+                throw new DictionaryNotContainsThisWord("Слово введенное пользователем не содержится в словаре");
+            }
+            if (userAnswer.equals(answer)) {
+                userWin = true;
+            }
+            alreadyUsedWords.add(userAnswer);
+            createSymbols(userAnswer);
+            --steps;
+        } else {
+            giveAdvice = true;
+            findAdvice(userAnswer);
+            createSymbols(advice);
         }
 
         if (steps == 0 || userWin) {
@@ -156,6 +148,10 @@ public class WordleGame {
 
     public String getSymbols() {
         return symbols;
+    }
+
+    public String getAnswer() {
+        return answer;
     }
 
     private void createAnswer() {

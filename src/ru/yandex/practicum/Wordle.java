@@ -7,6 +7,7 @@ import ru.yandex.practicum.UserExceptions.WordLengthNotEqual5;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.util.Scanner;
 
 /*
 в главном классе нам нужно:
@@ -25,11 +26,11 @@ public class Wordle {
             WordleDictionaryLoader loader = new WordleDictionaryLoader(logFile);
             WordleDictionary dictionary = loader.createDictionary("words_ru.txt");
             WordleGame wordleGame = new WordleGame(dictionary, logFile);
+            Scanner scanner = new Scanner(System.in);
 
             while (wordleGame.getGameIsContinue()) {
                 try {
-
-                    wordleGame.gameStep();
+                    wordleGame.gameStep(scanner.nextLine());
 
                     if (wordleGame.getGiveAdvice()) {
                         System.out.println(wordleGame.getAdvice());
