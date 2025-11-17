@@ -1,5 +1,6 @@
 package ru.yandex.practicum;
 
+import ru.yandex.practicum.UserExceptions.CorrectAnswerAlreadyDone;
 import ru.yandex.practicum.UserExceptions.DictionaryNotContainsThisWord;
 import ru.yandex.practicum.UserExceptions.IsOnlyBlanks;
 import ru.yandex.practicum.UserExceptions.WordLengthNotEqual5;
@@ -19,7 +20,7 @@ import java.io.PrintWriter;
 public class Wordle {
 
     public static void main(String[] args) {
-        try (PrintWriter logFile = new PrintWriter("log.txt")){
+        try (PrintWriter logFile = new PrintWriter("log.txt")) {
 
             WordleDictionaryLoader loader = new WordleDictionaryLoader(logFile);
             WordleDictionary dictionary = loader.createDictionary("words_ru.txt");
@@ -31,17 +32,18 @@ public class Wordle {
                     wordleGame.gameStep();
 
                     if (wordleGame.getGiveAdvice()) {
-                       System.out.println(wordleGame.getAdvice());
+                        System.out.println(wordleGame.getAdvice());
                     }
 
                     System.out.println(wordleGame.getSymbols());
 
-                } catch (DictionaryNotContainsThisWord | WordLengthNotEqual5 | IsOnlyBlanks e) {
+                } catch (DictionaryNotContainsThisWord | WordLengthNotEqual5 | CorrectAnswerAlreadyDone |
+                         IsOnlyBlanks e) {
                     System.out.println(e.getMessage());
                 }
             }
 
-            if(wordleGame.getUserWin()) {
+            if (wordleGame.getUserWin()) {
                 System.out.println("Вы победили!");
             } else {
                 System.out.println("Вы проиграли.");

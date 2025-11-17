@@ -1,5 +1,6 @@
 package ru.yandex.practicum;
 
+import ru.yandex.practicum.UserExceptions.CorrectAnswerAlreadyDone;
 import ru.yandex.practicum.UserExceptions.DictionaryNotContainsThisWord;
 import ru.yandex.practicum.UserExceptions.IsOnlyBlanks;
 import ru.yandex.practicum.UserExceptions.WordLengthNotEqual5;
@@ -42,13 +43,15 @@ public class WordleGame {
 
     private String symbols;
 
-    private final boolean[] forAdvice;
-
     private final HashSet<String> alreadyUsedWords;
 
-    private Random rand;
+    private final boolean[] letterOnCorrectPos;
 
-    private boolean isFirstWord;
+    private final HashSet<String> wrongLetters;
+
+    private final HashSet<String> correctLetters;
+
+    private Random rand;
 
     public WordleGame(WordleDictionary dictionary, PrintWriter logFile) {
         this.logFile = logFile;
@@ -58,55 +61,41 @@ public class WordleGame {
         this.userWin = false;
         this.rand = new Random();
         this.alreadyUsedWords = new LinkedHashSet<>();
-        this.forAdvice = new boolean[5];
-        isFirstWord = true;
+        this.letterOnCorrectPos = new boolean[5];
+        this.wrongLetters = new LinkedHashSet<>();
+        this.correctLetters = new LinkedHashSet<>();
         createAnswer();
     }
 
-    public void gameStep() throws WordLengthNotEqual5, IsOnlyBlanks, DictionaryNotContainsThisWord {
+    public void gameStep() throws WordLengthNotEqual5, IsOnlyBlanks, DictionaryNotContainsThisWord, CorrectAnswerAlreadyDone {
         giveAdvice = false;
 
         while (true) {
-            try {
-                String userAnswer = scanner.nextLine();
-                if (!userAnswer.isEmpty()) {
-                    if (userAnswer.length() != 5) {
-                        throw new WordLengthNotEqual5("Слово состоит меньше чем из 5 символов");
-                    } else if (userAnswer.isBlank()) {
-                        throw new IsOnlyBlanks("Введенное слово состоит только из пробелов.");
-                    }
-                    userAnswer = userAnswer.toLowerCase().replaceAll("ё", "е");
-                    if (!dictionary.contains(userAnswer)) {
-                        throw new DictionaryNotContainsThisWord("Слово введенное пользователем не содержится в словаре");
-                    }
-
-                    if (userAnswer.equals(answer)) {
-                        userWin = true;
-                    }
-                    alreadyUsedWords.add(userAnswer);
-                    createSymbols(userAnswer);
-                    if (isFirstWord) {
-                        isFirstWord = false;
-                    }
-                } else {
-                    giveAdvice = true;
-                    findAdvice(userAnswer);
-                    createSymbols(advice);
+            String userAnswer = scanner.nextLine();
+            if (!userAnswer.isEmpty()) {
+                if (userAnswer.length() != 5) {
+                    throw new WordLengthNotEqual5("Слово состоит меньше чем из 5 символов");
+                } else if (userAnswer.isBlank()) {
+                    throw new IsOnlyBlanks("Введенное слово состоит только из пробелов.");
                 }
-                break;
-            } catch (WordLengthNotEqual5 e) {
-                logFile.println(e.getMessage());
-                throw new WordLengthNotEqual5(e.getMessage());
-            } catch (IsOnlyBlanks e) {
-                logFile.println(e.getMessage());
-                throw new IsOnlyBlanks(e.getMessage());
-            } catch (DictionaryNotContainsThisWord e) {
-                logFile.println(e.getMessage());
-                throw new DictionaryNotContainsThisWord(e.getMessage());
-            }
-        }
+                userAnswer = userAnswer.toLowerCase().replaceAll("ё", "е");
+                if (!dictionary.contains(userAnswer)) {
+                    throw new DictionaryNotContainsThisWord("Слово введенное пользователем не содержится в словаре");
+                }
 
-        --steps;
+                if (userAnswer.equals(answer)) {
+                    userWin = true;
+                }
+                alreadyUsedWords.add(userAnswer);
+                createSymbols(userAnswer);
+                --steps;
+            } else {
+                giveAdvice = true;
+                findAdvice(userAnswer);
+                createSymbols(advice);
+            }
+            break;
+        }
 
         if (steps == 0 || userWin) {
             gameIsContinue = false;
@@ -129,39 +118,19 @@ public class WordleGame {
         return advice;
     }
 
-    public void findAdvice(String userAnswer) {
+    public void findAdvice(String userAnswer) throws CorrectAnswerAlreadyDone {
         ArrayList<String> wordsForAdvice = new ArrayList<>();
 
-        if (!isFirstWord) {
-            for (int i = 0; i < 5; i++) {
-                if (!forAdvice[i]) {
-                    forAdvice[i] = true;
-                    break;
-                }
-            }
-        } else {
-            isFirstWord = false;
-        }
-
         for (String s : dictionary.getWords()) {
-            if (!alreadyUsedWords.contains(s)) {
-                boolean found = true;
-                for (int i = 0; i < s.length(); i++) {
-                    if (!((answer.charAt(i) == s.charAt(i)) == forAdvice[i])) {
-                        found = false;
-                        break;
-                    }
-                }
-                if (found) {
-                    wordsForAdvice.add(s);
-                }
+            if (checkWordForAdvice(s)) {
+                wordsForAdvice.add(s);
             }
         }
         if (!wordsForAdvice.isEmpty()) {
             advice = wordsForAdvice.get(rand.nextInt(wordsForAdvice.size()));
             alreadyUsedWords.add(advice);
         } else {
-            advice = "";
+            throw new CorrectAnswerAlreadyDone("Компьютер уже выдал правильный ответ");
         }
     }
 
@@ -171,11 +140,14 @@ public class WordleGame {
         for (int i = 0; i < userAnswer.length(); i++) {
             if (userAnswer.charAt(i) == answer.charAt(i)) {
                 sb.append("+");
-                forAdvice[i] = true;
+                letterOnCorrectPos[i] = true;
+                correctLetters.add(Character.toString(userAnswer.charAt(i)));
             } else if (answer.contains(Character.toString(userAnswer.charAt(i)))) {
                 sb.append("^");
+                correctLetters.add(Character.toString(userAnswer.charAt(i)));
             } else {
                 sb.append("-");
+                wrongLetters.add(Character.toString(userAnswer.charAt(i)));
             }
         }
 
@@ -188,5 +160,30 @@ public class WordleGame {
 
     private void createAnswer() {
         answer = dictionary.get(rand.nextInt(dictionary.size() - 1));
+    }
+
+    private boolean checkWordForAdvice(String word) {
+        if (!alreadyUsedWords.contains(word)) {
+            for (int i = 0; i < word.length(); i++) {
+                if (letterOnCorrectPos[i]) {
+                    if (!(word.charAt(i) == answer.charAt(i))) {
+                        return false;
+                    }
+                }
+                if (wrongLetters.contains(Character.toString(word.charAt(i)))) {
+                    return false;
+                }
+            }
+
+            for (String letter : correctLetters) {
+                if (!word.contains(letter)) {
+                    return false;
+                }
+            }
+
+            return true;
+        } else {
+            return false;
+        }
     }
 }
