@@ -1,5 +1,7 @@
 package ru.yandex.practicum;
 
+import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 /*
@@ -8,7 +10,34 @@ import java.util.List;
     также этот класс может содержать рутинные функции по сравнению слов, букв и т.д.
  */
 public class WordleDictionary {
+    private static final int MAX_ANSWER_LETTERS = 5;
+    private final List<String> words;
+    private final PrintWriter logFile;
 
-    private List<String> words;
+    public WordleDictionary(PrintWriter logFile) {
+        this.logFile = logFile;
+        this.words = new ArrayList<>();
+    }
 
+    public boolean contains(String word) {
+        return words.contains(word);
+    }
+
+    public void add(String word) {
+        if (word.length() == MAX_ANSWER_LETTERS) {
+            words.add(word.replaceAll("ё", "е").toLowerCase());
+        }
+    }
+
+    public int size() {
+        return words.size();
+    }
+
+    public String get(int wordIndex) {
+        return words.get(wordIndex);
+    }
+
+    public List<String> getWords() {
+        return words;
+    }
 }
