@@ -10,7 +10,7 @@ import java.util.List;
     также этот класс может содержать рутинные функции по сравнению слов, букв и т.д.
  */
 public class WordleDictionary {
-
+    private static final int MAX_ANSWER_LETTERS = 5;
     private final List<String> words;
     private final PrintWriter logFile;
 
@@ -24,7 +24,7 @@ public class WordleDictionary {
     }
 
     public void add(String word) {
-        if (word.length() == 5) {
+        if (word.length() == MAX_ANSWER_LETTERS) {
             words.add(word.replaceAll("ё", "е").toLowerCase());
         }
     }

@@ -25,10 +25,10 @@ public class WordleDictionaryLoader {
         } catch (IOException e) {
             if (!(e.getMessage().isEmpty())) {
                 logFile.println(e.getMessage());
-                logFile.println("/n");
+                logFile.println(System.lineSeparator());
             } else {
                 logFile.println(e.getStackTrace().toString());
-                logFile.println("/n");
+                logFile.println(System.lineSeparator());
             }
             throw new FileNotFoundException();
         }
